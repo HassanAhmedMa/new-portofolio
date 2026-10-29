@@ -1417,8 +1417,13 @@ body.is-loading .swipe-inner {
   );
 }
 
-.tech-wheel-container:active {
+.tech-wheel-container:active,
+.tech-wheel-container.is-dragging {
   cursor: grabbing;
+}
+
+.tech-wheel-container.is-dragging * {
+  cursor: grabbing !important;
 }
 
 .tech-wheel-track {
@@ -1452,7 +1457,7 @@ body.is-loading .swipe-inner {
     0 0 25px rgba(255, 255, 255, var(--wheel-glow-strong, 0)),
     0 0 50px rgba(255, 255, 255, var(--wheel-glow-soft, 0));
   transition: filter 180ms ease;
-  cursor: pointer;
+  cursor: inherit;
 }
 
 .tech-wheel-track.is-scrubbing .wheel-item {

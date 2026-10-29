@@ -1447,6 +1447,7 @@ const TECH_STACK_CONFIG = {
 
     // Click on a skill to glide the stack to it.
     wheelTrack.addEventListener("click", (e) => {
+      if (mouseMoved) return;
       const item = e.target.closest(".wheel-item");
       if (!item) return;
       primeWheelAudio();
@@ -1458,6 +1459,118 @@ const TECH_STACK_CONFIG = {
       wheelTarget = clampWheel(clickedIdx);
       startWheel();
     });
+
+    // Mouse dragging: grabbing and spinning the skill cylinder directly on PC/desktop.
+    let mouseDragging = false;
+    let mousePointerId = 0;
+    let mouseStartY = 0;
+    let mouseLastY = 0;
+    let mouseLastTime = 0;
+    let mouseVelocity = 0;
+    let mouseMoved = false;
+    let mouseOverscroll = 0;
+    let mouseDirection = 0;
+
+    wheelContainer.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch") return; // Touch is handled by touchstart/touchmove
+      if (e.button !== 0) return;
+
+      primeWheelAudio();
+      mouseDragging = true;
+      mousePointerId = e.pointerId;
+      mouseStartY = e.clientY;
+      mouseLastY = e.clientY;
+      mouseLastTime = performance.now();
+      mouseVelocity = 0;
+      mouseMoved = false;
+      mouseOverscroll = 0;
+      mouseDirection = 0;
+      boundaryOverscroll = 0;
+      boundaryDirection = 0;
+    });
+
+    wheelContainer.addEventListener("pointermove", (e) => {
+      if (!mouseDragging) return;
+
+      const now = performance.now();
+      const nextY = e.clientY;
+      const totalMoved = Math.abs(nextY - mouseStartY);
+      if (totalMoved > 4) {
+        if (!mouseMoved) {
+          mouseMoved = true;
+          try {
+            wheelContainer.setPointerCapture(mousePointerId);
+          } catch (_) {}
+          wheelContainer.classList.add("is-dragging");
+        }
+      }
+
+      const dragDistance = mouseLastY - nextY;
+      const dt = Math.max(1, now - mouseLastTime);
+      mouseLastY = nextY;
+      mouseLastTime = now;
+
+      if (!dragDistance) return;
+
+      // Track recent velocity for smooth flick momentum on release
+      const currentVelocity = dragDistance / dt;
+      mouseVelocity = mouseVelocity * 0.25 + currentVelocity * 0.75;
+
+      const items = dragDistance / 44;
+      const previousTarget = wheelTarget;
+      wheelTarget = clampWheel(wheelTarget + items);
+      const leftover = items - (wheelTarget - previousTarget);
+
+      if (Math.abs(leftover) > 0.0001) {
+        const leftoverDirection = Math.sign(leftover);
+        if (leftoverDirection !== mouseDirection) {
+          mouseOverscroll = 0;
+          mouseDirection = leftoverDirection;
+        }
+        mouseOverscroll += Math.abs(leftover) * 44;
+      } else {
+        mouseOverscroll = 0;
+        mouseDirection = 0;
+      }
+
+      startWheel();
+    });
+
+    const endMouseDrag = (e) => {
+      if (!mouseDragging) return;
+      mouseDragging = false;
+      wheelContainer.classList.remove("is-dragging");
+      try {
+        if (wheelContainer.hasPointerCapture(e.pointerId)) {
+          wheelContainer.releasePointerCapture(e.pointerId);
+        }
+      } catch (_) {}
+
+      if (mouseOverscroll >= 110) {
+        switchStage(mouseDirection > 0 ? 2 : 0);
+      } else if (mouseMoved) {
+        const timeSinceMove = performance.now() - mouseLastTime;
+        const effectiveVelocity = timeSinceMove > 70 ? 0 : mouseVelocity;
+        const flickItems = Math.max(-5, Math.min(5, (effectiveVelocity * 1000) / 380));
+        wheelTarget = clampWheel(Math.round(wheelTarget + flickItems));
+        startWheel();
+      } else {
+        wheelTarget = clampWheel(Math.round(wheelTarget));
+        startWheel();
+      }
+
+      mouseOverscroll = 0;
+      mouseDirection = 0;
+
+      if (mouseMoved) {
+        window.setTimeout(() => {
+          mouseMoved = false;
+        }, 60);
+      }
+    };
+
+    wheelContainer.addEventListener("pointerup", endMouseDrag);
+    wheelContainer.addEventListener("pointercancel", endMouseDrag);
 
     // Wheel movement is proportional to the actual scroll distance. A light
     // notch moves one skill; a trackpad or fast flick can carry through several
@@ -1542,6 +1655,9 @@ const TECH_STACK_CONFIG = {
         touchTracking = false;
         if (touchOverscroll >= 76) {
           switchStage(touchDirection > 0 ? 2 : 0);
+        } else {
+          wheelTarget = clampWheel(Math.round(wheelTarget));
+          startWheel();
         }
         touchOverscroll = 0;
         touchDirection = 0;
