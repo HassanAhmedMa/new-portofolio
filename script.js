@@ -851,6 +851,7 @@ const TECH_STACK_CONFIG = {
 
   const projectCards = Array.from(document.querySelectorAll(".project-card"));
   const finePointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const coarsePointerQuery = window.matchMedia("(hover: none), (pointer: coarse)");
 
   const setActiveProject = (activeCard) => {
     projectCards.forEach((card) => {
@@ -868,7 +869,11 @@ const TECH_STACK_CONFIG = {
   // `is-settled` is what the CSS uses to fade the details in, so a card that is
   // already extended reveals them immediately while a collapsed one waits for
   // the flex transition to land.
-  const projectSettleDelay = reducedMotion ? 0 : 720;
+  const projectSettleDelay = reducedMotion
+    ? 0
+    : coarsePointerQuery.matches
+      ? 380
+      : 720;
 
   const settleProject = (card, delay) => {
     window.clearTimeout(card._settleTimer);
@@ -943,13 +948,17 @@ const TECH_STACK_CONFIG = {
       card.classList.toggle("is-instant", willOpen && wasActive);
 
       if (willOpen && scroller) {
+        const coarsePointer = coarsePointerQuery.matches;
         const targetLeft = Math.max(0, cardIndex * (collapsedWidth + scrollerGap) - 12);
         window.setTimeout(() => {
           scroller.scrollTo({
             left: targetLeft,
-            behavior: reducedMotion ? "auto" : "smooth"
+            // Smooth scrolling while the drawer is still resizing makes touch
+            // devices fight two animations at once. Let the drawer land first,
+            // then snap the selected card into view.
+            behavior: reducedMotion || coarsePointer ? "auto" : "smooth"
           });
-        }, 80);
+        }, coarsePointer ? 360 : 80);
       }
     });
   });
