@@ -1,0 +1,5 @@
+# Local experiments / non-portfolio files
+*.ipynb
+make_*.py
+cam3_test.jpg
+terpo-loader.html
