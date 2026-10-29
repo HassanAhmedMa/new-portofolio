@@ -977,7 +977,7 @@ const TECH_STACK_CONFIG = {
      CONTACT FORM — animated submit + n8n webhook
      ========================================================================= */
   const CONTACT_ENDPOINT =
-    "https://141.253.118.80.sslip.io/webhook-test/portofolio-submit-form";
+    "https://141.253.118.80.sslip.io/webhook/portofolio-submit-form";
 
   const contactForm = document.getElementById("contact-form");
   const contactStatus = document.getElementById("contact-status");
