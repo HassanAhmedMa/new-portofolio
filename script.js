@@ -648,6 +648,7 @@ const TECH_STACK_CONFIG = {
     }
 
     if (total > 0.03 && total < 0.85) ensureRock();
+    if (total > 0.15) preloadProjectImages();
   };
 
   const getStageRange = () =>
@@ -1094,7 +1095,16 @@ const TECH_STACK_CONFIG = {
 
   applyStageClasses(0);
   syncStageUI(0);
-  preloadProjectImages();
+  const projectsNavLink = navLinks.find((link) => link.getAttribute("href") === "#projects");
+  if (projectsNavLink) {
+    projectsNavLink.addEventListener("pointerenter", preloadProjectImages, { once: true });
+    projectsNavLink.addEventListener("focus", preloadProjectImages, { once: true });
+  }
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(preloadProjectImages, { timeout: 3500 });
+  } else {
+    window.setTimeout(preloadProjectImages, 2500);
+  }
   applyStageProgress(0);
   requestStageProgress();
 
@@ -2258,9 +2268,9 @@ const TECH_STACK_CONFIG = {
     };
 
     if (!saveData && "requestIdleCallback" in window) {
-      window.requestIdleCallback(warmRock, { timeout: 2800 });
+      window.requestIdleCallback(warmRock, { timeout: 5000 });
     } else if (!saveData) {
-      window.setTimeout(warmRock, 1800);
+      window.setTimeout(warmRock, 4000);
     }
   }
 })();

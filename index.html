@@ -111,7 +111,8 @@
   <link rel="preload" href="assets/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/inter-latin-italic.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/hero-space-bg-clean.webp" as="image" type="image/webp" />
-  <link rel="stylesheet" href="styles.css?v=109" />
+  <link rel="preload" href="assets/laptop-hero.webp" as="image" type="image/webp" fetchpriority="high" />
+  <link rel="stylesheet" href="styles.css?v=110" />
 </head>
 <body class="is-loading">
   <!-- Terpo loader styles -->
@@ -157,17 +158,45 @@
 </svg>
 </div>
 <script>
-window.addEventListener("load", function () {
+(function () {
   var l = document.getElementById("terpo-loader");
   if (!l) return;
-  setTimeout(function () {
+  var dismissed = false;
+
+  function dismiss() {
+    if (dismissed) return;
+    dismissed = true;
     l.classList.add("is-done");
     document.body.classList.remove("is-loading");
     setTimeout(function () {
-      l.remove();
+      try { l.remove(); } catch (_) {}
     }, 520);
-  }, 320);
-});
+  }
+
+  // Allow the slick logo charging animation to be enjoyed, then immediately reveal
+  var minTimeReached = false;
+  setTimeout(function () {
+    minTimeReached = true;
+    if (document.readyState === "interactive" || document.readyState === "complete") {
+      dismiss();
+    }
+  }, 420);
+
+  if (document.readyState === "interactive" || document.readyState === "complete") {
+    setTimeout(function () { if (minTimeReached) dismiss(); }, 50);
+  } else {
+    document.addEventListener("DOMContentLoaded", function () {
+      if (minTimeReached) dismiss();
+    });
+  }
+
+  window.addEventListener("load", function () {
+    if (minTimeReached) dismiss();
+  });
+
+  // Failsafe: Never block the user for more than 1.2s under any network condition
+  setTimeout(dismiss, 1200);
+})();
 </script>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
@@ -789,7 +818,7 @@ window.addEventListener("load", function () {
   <div class="theme-wipe" id="theme-wipe" aria-hidden="true"></div>
   <div class="cursor-glow" aria-hidden="true"></div>
 
-  <script src="script.js?v=109"></script>
+  <script src="script.js?v=110"></script>
 </body>
 </html>
 

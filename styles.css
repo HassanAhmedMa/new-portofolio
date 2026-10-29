@@ -23,7 +23,7 @@
   --line: #1a1b1c;
   --white: #f4f4f2;
   --header-h: 76px;
-  --stats-h: 184px;
+  --stats-h: clamp(82px, 11vh, 112px);
   --ease-sweep: cubic-bezier(0.76, 0, 0.18, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1669,6 +1669,40 @@ body.is-loading .swipe-inner {
   .stage-hero .stats-bar {
     transform-origin: 50% 100%;
     will-change: transform;
+  }
+
+  .hero {
+    flex: 1 1 0;
+    min-height: 0;
+    padding-block: clamp(12px, 2.4vh, 32px) clamp(12px, 2.6vh, 36px);
+  }
+
+  .hero-visual {
+    min-height: 0;
+    max-height: 100%;
+  }
+
+  .art-float {
+    width: min(100%, 38vw);
+    max-height: calc(100vh - var(--header-h) - var(--stats-h) - 50px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .laptop-art {
+    max-height: min(480px, calc(100vh - var(--header-h) - var(--stats-h) - 60px));
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .stats-bar {
+    min-height: var(--stats-h);
+  }
+
+  .stats-inner {
+    padding-block: clamp(16px, 2.2vh, 26px) clamp(14px, 2vh, 24px);
   }
 
   .stage-skills {
